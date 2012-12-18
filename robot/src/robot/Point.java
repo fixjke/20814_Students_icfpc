@@ -1,4 +1,5 @@
 package robot;
+import java.util.ArrayList;
 
 /*
  * To change this template, choose Tools | Templates
@@ -9,6 +10,7 @@ package robot;
  *
  * @author fix
  */
+//класс узла для метода A*
 public class Point {
     int x;
     int y;
@@ -16,6 +18,9 @@ public class Point {
     int f;
     int h;
     Point came_from;
+    ArrayList<Point> moved_from = new ArrayList<Point>();
+    ArrayList<Point> moved_to= new ArrayList<Point>();
+    //ArrayList<Point> differences; //различия между исходным полем и текущим
     Point(int xx, int yy) {
         x=xx;
         y=yy;
@@ -34,10 +39,17 @@ public class Point {
      @Override
     public boolean equals(Object obj) {
          Point tmp = (Point)obj;
+         if (tmp==null) return false;
          if (tmp.x==x && tmp.y==y) {
              return true; 
          }
          else return false;
      }
+
+ 
+         
+                 
     
 }
+    
+
