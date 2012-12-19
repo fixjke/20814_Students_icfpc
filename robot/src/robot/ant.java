@@ -23,8 +23,8 @@ public class ant {
     }
     edge chooseEdge(ArrayList<edge> edges,vertex exit) {
         
-        double alph=0.4;
-        double bet=0.6;
+        double alph=0.5;
+        double bet=0.5;
         double P=0.0; // вероятность
         double Pnumer=0.0;
         double Pdenom=0.0;

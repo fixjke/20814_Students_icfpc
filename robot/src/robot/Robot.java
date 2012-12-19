@@ -1,4 +1,4 @@
-﻿/*
+/*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
@@ -31,13 +31,18 @@ public class Robot {
     int exitY;
     int lambds; //лямбд на карте
     int getLambds; //собрано лямбд
-    int currentCost;
+    //int currentCost;
+    boolean isOver;
     //ArrayList<Point> path;
     ArrayList<Point> lmb = new ArrayList<Point>();
+    ArrayList<Character> turns = new ArrayList<Character>();
     Robot(char[][] map, int w, int h){
+        isOver=false;
         height=h;
         width=w;
-        currentCost=0;
+        exitX=0;
+        exitY=0;
+        //CurrentCost=0;
         score=0;
         field = new cell[width][height];
         for (int i=0; i<height;i++){
@@ -65,13 +70,26 @@ public class Robot {
             }
         }
     }
+    void checkExit() {
+        if (lambds==0) {
+            for (int i=0; i<height; i++) {
+                for (int j=0; j<width; j++) {
+                    if (field[j][i]==cell.EXIT) field[j][i]=cell.OEXIT;
+                }
+            }
+        }
+    }
     boolean A() {
         gameOver(1);
         return true;
     }
     boolean W( boolean shouldCount) {
         simulateField();
-        if (shouldCount) score--;
+        if (shouldCount) {
+            score--;
+            //if (!isAlive()) gameOver(0);
+        }
+        
         return true;
     }
     boolean L(boolean shouldCount) {
@@ -79,8 +97,11 @@ public class Robot {
             field[robotX][robotY]=cell.EMPTY;
             robotX--;
             field[robotX][robotY]=cell.ROBOT;
-            if (shouldCount) score--;
-            gameOver(2);
+            if (shouldCount) {
+                score--;
+                gameOver(2);
+            }
+            
             return true;
         }
         else if (field[robotX-1][robotY]==cell.STONE && field[robotX-2][robotY]==cell.EMPTY ) {
@@ -88,28 +109,39 @@ public class Robot {
             robotX--;
             field[robotX][robotY]=cell.ROBOT;
             field[robotX-1][robotY]=cell.STONE;
-            if (shouldCount) score--;
+            
             simulateField();
+            if (shouldCount) {
+                score--;
+                //if (!isAlive()) gameOver(0);
+            }
             return true;
         }
         else if (field[robotX-1][robotY]==cell.EMPTY || field[robotX-1][robotY]==cell.GROUND) {
             field[robotX][robotY]=cell.EMPTY;
             robotX--;
             field[robotX][robotY]=cell.ROBOT;   
-            if (shouldCount) score--;
+            
             simulateField();
+            if (shouldCount) {
+                score--;
+                if(!isAlive()) gameOver(0);
+            }
             return true;
         }
         else if (field[robotX-1][robotY]==cell.LAMBDA) {
             field[robotX][robotY]=cell.EMPTY;
             robotX--;
             field[robotX][robotY]=cell.ROBOT;
+            
+            simulateField();
             if (shouldCount) {
                 score+=25;
                 getLambds++;
                 lambds--;
+                checkExit();
+                if (!isAlive()) gameOver(0);
             }
-            simulateField();
             return true;
         }
         //else {
@@ -122,8 +154,10 @@ public class Robot {
             field[robotX][robotY]=cell.EMPTY;
             robotX++;
             field[robotX][robotY]=cell.ROBOT;
-            if (shouldCount) score--;
-            gameOver(2);
+            if (shouldCount) {
+                score--;
+                gameOver(2);
+            }
             return true;
         }
         else if (field[robotX+1][robotY]==cell.STONE && (field[robotX+2][robotY]==cell.EMPTY )) {
@@ -131,28 +165,41 @@ public class Robot {
             robotX++;
             field[robotX][robotY]=cell.ROBOT;
             field[robotX+1][robotY]=cell.STONE;
-            if (shouldCount) score--;
+            
             simulateField();
+            if (shouldCount) {
+                score--;
+                if (!isAlive()) gameOver(0);
+            }
             return true;
         }
         else if (field[robotX+1][robotY]==cell.EMPTY || field[robotX+1][robotY]==cell.GROUND ) {
             field[robotX][robotY]=cell.EMPTY;
             robotX++;
-            if (shouldCount) score--;
+            
             field[robotX][robotY]=cell.ROBOT;
             simulateField();
+            if (shouldCount) {
+                score--;
+                if(!isAlive()) {
+                    gameOver(0);
+                }
+            }
             return true;
         }
        else if (field[robotX+1][robotY]==cell.LAMBDA) {
             field[robotX][robotY]=cell.EMPTY;
             robotX++;
             field[robotX][robotY]=cell.ROBOT;
+            simulateField();
             if (shouldCount){
                 score+=25;
                 getLambds++;
                 lambds--;
+                checkExit();
+                if (!isAlive()) gameOver(0);
             }
-            simulateField();
+            
             return true;
         }
 //        else {
@@ -164,31 +211,42 @@ public class Robot {
         if (field[robotX][robotY-1]==cell.OEXIT) {
             field[robotX][robotY]=cell.EMPTY;
             robotY--;
-            if (shouldCount) score--;
             field[robotX][robotY]=cell.ROBOT;
-            gameOver(2);
+            if (shouldCount) {
+                score--;
+                gameOver(2);
+            }
+            
+            
             return true;
         }
         else if (field[robotX][robotY-1]==cell.EMPTY || field[robotX][robotY-1]==cell.GROUND) {
             field[robotX][robotY]=cell.EMPTY;
             robotY--;
-            if (shouldCount) score--;
             field[robotX][robotY]=cell.ROBOT;
             simulateField();
+            if (shouldCount) {
+                score--;
+                if(!isAlive()) gameOver(0);
+            }
+            
+            
             return true;
         }
         else if (field[robotX][robotY-1]==cell.LAMBDA) {
             field[robotX][robotY]=cell.EMPTY;
             robotY--;
             field[robotX][robotY]=cell.ROBOT;
+            simulateField();
             if (shouldCount) {
                 
-            
+                if (!isAlive()) gameOver(0);
                 score+=25;
                 lambds--;
                 getLambds++;
+                checkExit();
             }
-            simulateField();
+            
             return true;
         }
          //else {
@@ -200,29 +258,41 @@ public class Robot {
         if (field[robotX][robotY+1]==cell.OEXIT) {
             field[robotX][robotY]=cell.EMPTY;
             robotY++;
-            if (shouldCount) score--;
             field[robotX][robotY]=cell.ROBOT;  
-            gameOver(2);
+            if (shouldCount) {
+                score--;
+                gameOver(2);
+            }
+            
+            
             return true;
         }
         else if (field[robotX][robotY+1]==cell.EMPTY || field[robotX][robotY+1]==cell.GROUND) {
             field[robotX][robotY]=cell.EMPTY;
             robotY++;
-            if (shouldCount) score--;
+            
             field[robotX][robotY]=cell.ROBOT;  
             simulateField();
+            if (shouldCount) {
+                score--;
+                if (!isAlive()) gameOver(0);
+            }
+            
             return true;
         }
         else if  (field[robotX][robotY+1]==cell.LAMBDA) {
             field[robotX][robotY]=cell.EMPTY;
             robotY++;
             field[robotX][robotY]=cell.ROBOT;   
+            
+            simulateField();
             if (shouldCount) {
                 score+=25;
                 getLambds++;
                 lambds--;
+                checkExit();
+                if (!isAlive()) gameOver(0);
             }
-            simulateField();
             return true;
         }
         //else {
@@ -232,7 +302,7 @@ public class Robot {
     }
     void print(){
         StringBuilder sb = new StringBuilder();
-        System.out.println(" 01234567");
+        //System.out.println(" 01234567");
         for (int i=0; i<height;i++){
             //sb.append(i);
             for (int j=0; j<width; j++) {
@@ -255,14 +325,22 @@ public class Robot {
     //1 - выполнение команды А
     //2 - вход в открытый выход
     void gameOver(int result) {
-        if (result==0) System.out.println("LOSE");
+        isOver = true;
+        StringBuilder sb = new StringBuilder();
+        for (Character c:turns) {
+            sb.append(c);
+        }
+        System.out.println(sb);
+        if (result==0) {
+            System.out.println("LOSE:" + score);
+        }
         else if (result == 1) {
             score+=getLambds*25;
-            System.out.println("WIN, POINTS:" + score);
+            System.out.println("WIN, SCORE:" + score);
         }
         else if (result == 2) {
             score+=getLambds*50;
-            System.out.println("WIN, POINTS:" + score);
+            System.out.println("WIN, SCORE:" + score);
         }
                 
     }
@@ -321,7 +399,7 @@ public class Robot {
             }
         }
         
-        move(path,false);
+        move(path,false,false);
         if (robotX==exitX && robotY==exitY){
             //восстановление копии поля
             for (int i=0; i<height;i++) {
@@ -336,7 +414,7 @@ public class Robot {
             return true;
         }
         //проверяем, можем ли мы выйти из данной точки
-        //boolean isSafe=false;
+        boolean lambdaFound=false;
         ArrayList<Point> pth = new ArrayList<Point>();
         for (int i=0;i<height;i++) {
             for (int j=0; j<width;j++) {
@@ -344,6 +422,7 @@ public class Robot {
                         //&& 
                         //!getPathAStar(new Point(robotX,robotY),new Point(j,i)).isEmpty()) {
                     //восстановление копии поля
+                    lambdaFound = true;
                     pth = getPathAStar(new Point(robotX,robotY),new Point(j,i));
                     if (pth.size()>0) {
                         for (int g=0; g<height;g++) {
@@ -370,6 +449,7 @@ public class Robot {
                 }
             }
         }
+        if (!lambdaFound) return true;
         return false;
     }
     
@@ -450,12 +530,12 @@ public class Robot {
         }
         return true;
     }
-    void move(ArrayList<Point> path_map, boolean shouldCount) {
+    void move(ArrayList<Point> path_map, boolean shouldCount, boolean debug) {
         //System.out.println(path_map.size());
         if (!shouldCount && path_map.isEmpty()) return;
         if (path_map.isEmpty() || path_map==null) {
             //System.out.println("FAIL");
-            A();
+            //A();
             //gameOver(1);
             return;
         }
@@ -464,34 +544,38 @@ public class Robot {
             Point prev = path_map.get(path_map.size()-2);
             if (prev.x-last.x == 0 && prev.y-last.y==1) {
                 D(shouldCount);
+                //print();
                 if (shouldCount) {
-                    print();
+                    if (debug) print();
                     //D(shouldCount);
-                    System.out.println("D");
+                    turns.add('D');
                 }
                 path_map.remove(last);
             }
             else if (prev.x-last.x==0 && prev.y-last.y==-1) {
                 U(shouldCount);
+                //print();
                 if (shouldCount) {
-                    print();
-                    System.out.println("U");
+                    if (debug) print();
+                    turns.add('U');
                 }
                 path_map.remove(last);
             }
             else if (prev.y-last.y==0 && prev.x-last.x==1){
                 R(shouldCount);
+                //print();
                 if (shouldCount) {
-                    print();
-                    System.out.println("R");
+                    if (debug) print();
+                    turns.add('R');
                 }
                 path_map.remove(last);
             }
             else if (prev.y-last.y==0 && prev.x-last.x==-1){
                 L(shouldCount);
+                //print();
                 if (shouldCount) {
-                    print();
-                    System.out.println("L");
+                    if (debug) print();
+                    turns.add('L');
                 }
                 path_map.remove(last);
             }
@@ -675,6 +759,7 @@ public class Robot {
                 tmp[j][i]=field[j][i];
             }
         }
+        //System.out.println("OK");
         //System.out.println("p: " + robotX + "-" + robotY);
         ArrayList<Point> neighbors = new ArrayList<Point>();
         //передвигаем робота в проверяемую клетку:
@@ -709,9 +794,20 @@ public class Robot {
 //            sb1.append("___");
             //System.out.println(pathToPoint.size());
         
-            move(pathToPoint,false);
+            move(pathToPoint,false,false);
         }
-        //if (p.x!=robotX || p.y!=robotY) return neighbors;
+        if (p.x!=robotX || p.y!=robotY) {
+            for (int i=0; i<height;i++){
+            for (int j=0; j<width; j++) {
+                field[j][i]=tmp[j][i];
+                if (tmp[j][i]==cell.ROBOT) {
+                    robotX=j;
+                    robotY=i;
+                }
+            }
+        }
+            return neighbors;
+        }
         //System.out.println("R: " + robotX + "-" + robotY);
         //System.out.println("p: " + p.x + "-" + p.y);
         //StringBuilder sb = new StringBuilder();
@@ -734,6 +830,7 @@ public class Robot {
             n.came_from = p;
             neighbors.add(n);
         }
+        
         if (checkD()) {
             //System.out.println("D: " + checkD());
             //System.out.println(p.x + "-" +p.y);
@@ -753,6 +850,8 @@ public class Robot {
             n.came_from = p;
             neighbors.add(n);
         }
+        
+        
         for (int i=0; i<height;i++){
             for (int j=0; j<width; j++) {
                 field[j][i]=tmp[j][i];
@@ -762,6 +861,7 @@ public class Robot {
                 }
             }
         }
+        //System.out.println("!OK");
         //for (Point n:neighbors) {
         //    sb.append("neighbors: ");
         //    sb.append(n.x + "-" + n.y);
@@ -782,6 +882,7 @@ public class Robot {
         openset.add(start);
         while (!openset.isEmpty()) {
             Point x=getBest(openset); //вершина с лучшим f(x)
+            if (x.x==0 && x.y==0) break;
             //System.out.println(sb);
             if (x.x==goal.x && x.y==goal.y) {
                 //return reconstruct_path(start,goal,closedset);
@@ -793,8 +894,9 @@ public class Robot {
             if (!closedset.contains(x)) {
                 closedset.add(x);
             }
-            
+            //System.out.println("OK");
             ArrayList<Point> neighbor_nodes = get_neighboor_nodes(x,start,goal,closedset);
+            //System.out.println("CURRENT POINT: " + x.x + "-" + x.y);
             if (neighbor_nodes.isEmpty()) continue;
             for (Point y:neighbor_nodes) {
                 if (closedset.contains(y)) {
@@ -820,7 +922,7 @@ public class Robot {
     Point getBest() {
         if (lambds==0) return new Point(exitX,exitY);
         Point best = new Point(0,0);
-        best.h=1000;
+        best.h=10000;
         for (int i=0; i<height;i++){
             for (int j=0; j<width; j++) {
                 if (field[j][i]==cell.LAMBDA) {
@@ -835,29 +937,38 @@ public class Robot {
         return best;
        
     }
-    void passLabyrinth() {
+    void passLabyrinth(boolean debug) {
  
             ArrayList<edge> route = getRoute(new Point(robotX,robotY),new Point(exitX,exitY));
-            //System.out.println(route.size());
+            
             if (route.isEmpty()) {
+                turns.add('A');
+                //System.out.println("ROUTE IS EMPTY");
                 A();
+                //turns.add('A');
+                
                 return;
             }
             for (edge e:route) {
                 if (e.start.x==robotX && e.start.y==robotY) {
                     ArrayList<Point> path = getPathAStar(new Point(e.start.x,e.start.y), new Point(e.end.x,e.end.y));
                     
-                    move(path,true);
+                    move(path,true,debug);
                     
                 }
                 else if (e.end.x==robotX && e.end.y==robotY) {
                      ArrayList<Point> path = getPathAStar(new Point(e.end.x,e.end.y), new Point(e.start.x,e.start.y));
-                     move(path,true);
+                     move(path,true,debug);
                     
                 }
                 //move(e.path,true);
             }
-            if (robotX!=exitX && robotY!=exitY) A();
+           
+            if (robotX!=exitX && robotY!=exitY) {
+                turns.add('A');
+                A();
+                //System.out.println("FACEPALM");
+            }
     }
    
     //GLOBAL SEARCH, ANT COLONY
@@ -879,44 +990,17 @@ public class Robot {
         //return new ArrayList<edge>();
         for (int i=0; i<height;i++){
             for (int j=0; j<width; j++) {
-                if (field[j][i]==cell.LAMBDA || field[j][i]==cell.EXIT || field[j][i]==cell.OEXIT) {
+                if (field[j][i]==cell.LAMBDA) {// || field[j][i]==cell.EXIT || field[j][i]==cell.OEXIT) {
                     vertices.add(new vertex(j,i));
+                    //System.out.println(j + "-" + i);
                 }
             }
         }
-        //ArrayList<path> p= findPathsFromPoint(new Point(robotX,robotY), vertices);
-        //System.out.print("LAMBDS: " +lambds + "PATHS: " + p.size());
-//        for (vertex v:vertices) {
-//            for (vertex t:vertices) {
-//               if (!v.equals(t) && t.checked==false) {
-//                    ArrayList<Point> pth = getPathAStar(new Point(v.x,v.y),new Point(t.x,t.y));
-//                    int len = pth.size();
-//                    //if (len!=0 && v.x==start.x && v.y==start.y && isSafePath(pth)) {
-//                    //   edge e = new edge(v,t);
-//                    //    e.lenght=len;
-//                    //    edges.add(e);
-//                    //}
-//                    if (len!=0) { //&& v.x!=start.x && v.y!=start.y)) {
-//                        edge e = new edge(v,t);
-//                        e.lenght=len;
-//                        edges.add(e);
-//                    }
-////                    edge e = new edge(v,t);
-////                    e.lenght=heuristic_cost_estimate(new Point(v.x,v.y),new Point(t.x,t.y));
-////                    edges.add(e);
-//                }
-//            }
-//            v.checked=true;
-//       }
-        
-        
-            //for (vertex t:vertices) {
-              //      ArrayList<Point> pth = getPathAStar(new Point(robotX,robotY),new Point(t.x,t.y)); }
-       
-        int tmax = 1; //время жизни колонии
+   
+        int tmax = 100; //время жизни колонии
         
         int t=0;
-        int cost=10000; //лучшая стоимость пути
+        int cost=0; //лучшая стоимость пути(число очков)
         
         while (t<tmax) {
             
@@ -933,43 +1017,58 @@ public class Robot {
             ant a0 = new ant(new vertex(robotX,robotY)); 
             //System.out.println("OK");
             ArrayList<edge> passedEdges = new ArrayList<edge>();
-            
+            int currentCost = 0;
             while ((a0.passed.size()!= vertices.size()) ) {
                 a0.passed.add(a0.current);
                 //System.out.println("OK");
                 getEdges(vertices,edges,a0);
-                //System.out.println("OK!!");
-                edge psd = a0.move(edges, new vertex(exitX,exitY));
                 
-                //System.out.println(a0.current.x);
-                //System.out.println(a0.current.y);
-                //System.out.print("VISIT");
-                if (psd!=null) {
-                     passedEdges.add(psd);
-                     move(psd.path,false);
+                edge psd = a0.move(edges, new vertex(exitX,exitY));
+                //System.out.println("ant: " + a0.current.x + "-" + a0.current.y);
+                //System.out.println(psd.size());
+                if (psd!=null && psd.path.size()!=1) {
+                    //System.out.println("PSD SIZE: " + psd.path.size());
+                    currentCost-=psd.lenght;
+                    currentCost+=25;
+                    if (a0.current.equals(new vertex(exitX,exitY))) {
+                        currentCost+=50*a0.passed.size();
+                    }
                 }
                 
+                if (psd!=null && !psd.path.isEmpty() && psd.path.size()!=1 && isSafePath(psd.path)){// && isSafePath(psd)) {
+                     passedEdges.add(psd);
+                     
+                     move(getPathAStar(new Point (robotX,robotY), new Point(a0.current.x, a0.current.y)),false,false);
+                     
+                }
                 else break;
+               
             }
-            int currentCost=0;//текущая стоимость пути
-            for (edge e:passedEdges){
-                currentCost+=e.lenght;
+            //int currentCost=0;//текущая стоимость пути
+           // for (edge e:passedEdges){
+            //    currentCost+=e.lenght;
+            //}
+            if (a0.passed.size() == vertices.size() && exitX!=0 && exitY!=0) {
+                ArrayList<Point> pthh = getPathAStar(new Point(robotX,robotY),new Point(exitX,exitY));
+                if (!pthh.isEmpty() && pthh!=null) {
+                    edge ee=new edge(a0.current, new vertex(exitX,exitY));
+                    ee.lenght = pthh.size();
+                    passedEdges.add(ee);
+                    currentCost-=ee.lenght;
+                    currentCost+= a0.passed.size()*50;
+                }
             }
-            
-            if (currentCost<cost) {
+            //System.out.println(currentCost);
+            if (currentCost>cost) {
                 cost=currentCost;
+                //System.out.println(currentCost);
                 route = passedEdges;
             }
             updatePheromon(a0,edges,passedEdges);
             t++;
             
         }
-//        int c=0;
-//        for (edge e:route) {
-//            c+=e.lenght;
-//        }
-//        System.out.println(c);
-        //System.out.println(route.size());
+
         for (int i=0; i<height;i++){
                 for (int j=0; j<width; j++) {
                     field[j][i]=tmp[j][i];
@@ -979,6 +1078,7 @@ public class Robot {
                     }
                 }
             }
+        //System.out.print(route.size());
         return route;
 
     }
@@ -994,26 +1094,20 @@ public class Robot {
         //System.out.println("OK");
         for (vertex v: vertices) {
                 edge e = new edge(a0.current,v);
-                if (!edges.contains(e)   && !a0.passed.contains(v)) {
-                    //field[a0.current.x][a0.current.y]=cell.ROBOT;
-                    //System.out.println("OK");
-                    //System.out.print(a0.current.x + "-" + a0.current.y + "to" + v.x + "-" +v.y);
+                if (!edges.contains(e) && !a0.passed.contains(v) && !a0.current.equals(v)) {
+                   
                     ArrayList<Point> pth = getPathAStar(new Point(a0.current.x,a0.current.y),new Point(v.x,v.y));
-                    //System.out.println("!OK");
-                    boolean t = false;
-                    for (Point pi:pth) {
-                        if (!pi.equals(new Point(a0.current.x,a0.current.y)) && !pi.equals(new Point(v.x,v.y)) && vertices.contains(new vertex(pi.x,pi.y))) {
-                            t=true;
-  
-                        }
-                    }
+                    
+//                    }
                     //System.out.println("OK!");
                     //System.out.println(edges.size());
                     int len = pth.size();
                     e.lenght = len;
-                    
-                    if (len!=0 && !t) {
+                    //StringBuilder sb= new StringBuilder();
+                    if (len!=0){ // || len==2) { // && !t) {
                         e.path=pth;
+                        //System.out.println("path: " + e.path.get(0).x + "-" + e.path.get(0).y 
+                        //        + " to " +e.path.get(e.path.size()-1).x + "-" + e.path.get(e.path.size()-1).y);
                         edges.add(e);
                         
                     }
@@ -1021,9 +1115,7 @@ public class Robot {
                     
                 }
             }
-        //System.out.println("OK!");
-        
-        //System.out.println(edges.size());
+
     
     }
     
@@ -1047,14 +1139,14 @@ public class Robot {
     boolean checkD() {
         if (field[robotX][robotY] == cell.ROBOT && isSafeCell(robotX,robotY+1) && field[robotX][robotY+1]!=cell.WALL && field[robotX][robotY+1]!=cell.STONE) { 
                 //|| field[robotX][robotY+1]==cell.GROUND || field[robotX][robotY+1]==cell.LAMBDA)) {
-            //System.out.println(field[robotX][robotY+1]!=cell.STONE);
+            //System.out.println(field[robotX][robotY]==cell.ROBOT);
             //System.out.println(robotX);
             //System.out.println(robotY);
             return true;
         }
         return false;
     }
-    boolean checkR() {
+    boolean checkR() { 
         if (field[robotX][robotY] == cell.ROBOT && isSafeCell(robotX+1,robotY) && field[robotX+1][robotY]!=cell.WALL && field[robotX+1][robotY]!=cell.STONE) {
                 //|| field[robotX+1][robotY]==cell.GROUND || field[robotX+1][robotY]==cell.LAMBDA)) {
             return true;
@@ -1083,8 +1175,9 @@ public class Robot {
     public static void main(String[] args) {
          //TODO code application logic here
         try {
-            FileReader file = new FileReader("map5.txt");
-            BufferedReader reader = new BufferedReader(file);
+            //FileReader file = new FileReader("map10.txt");
+            //BufferedReader reader = new BufferedReader(file);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             int height=0;
             int width = 0;
             ArrayList<String> list = new ArrayList<String>();
@@ -1093,24 +1186,34 @@ public class Robot {
                list.add(currentString);
                height++;
             }
-            reader.close();
-            file.close();
-            width = list.get(0).length();
+            //System.out.println(list.size());
+            //reader.close();
+//            //file.close();
+            width=0;
+            //width = list.get(0).length();
+            for (String s:list) {
+                if (s.length()>width) width=s.length();
+            }
             char[][] map = new char[width][height];
             for (int i=0; i<height; i++) {
-                for (int j=0; j<width; j++) {
-                    map[j][i] = list.get(i).charAt(j);
-                }
+                for (int j=0; j<list.get(i).length(); j++) {
+                   map[j][i] = list.get(i).charAt(j);
+               }
             }
             Robot R = new Robot(map,width,height);
-            R.print();
+            //R.print();
             
-
+            //System.out.println("DSAD");
+            try {
+          
             if (args[0].equals(new String("-manual"))) {
-               
+               R.print();
                 char c;
                 do {
-                    c = (char)System.in.read();
+                    //reader.reset();
+                    c=(char)reader.read();
+                    //c=(char)System.in.read();
+                   // c = (char)System.in.read();
                     if (c=='U') {
                          if (R.U(true)) R.print();
                     }
@@ -1132,22 +1235,38 @@ public class Robot {
                         R.print();
                     }
                 }
-                while (true);
+                while (!R.isOver);
+                return;
             }
             else if (args[0].equals(new String("-debug"))) {
-                R.passLabyrinth();
+                R.print();
+                R.passLabyrinth(true);
+                return;
+            }
+            //R.passLabyrinth(false);
+            //System.out.println("DSAD");
+            //else {
+            //    R.passLabyrinth(false);
+            //}
+            }
+            catch(ArrayIndexOutOfBoundsException e) {}
+            R.passLabyrinth(false);
+            R.print();
+            //ArrayList<Point> testpth = R.getPathAStar(new Point(R.robotX,R.robotY),new Point(10,3));
+            //System.out.println(testpth.size());
+            //System.out.println(R.field[10][3]);
 //                for (int i=0; i<height; i++) {
-//                 /  for (int j=0; j<width; j++) {
+//                    for (int j=0; j<width; j++) {
 //                        if (R.field[j][i]==cell.LAMBDA) {
 //                            System.out.println(j + "-" + i);
 //                            R.getPathAStar(new Point(R.robotX,R.robotY),new Point(j,i));
-//                            if (j==6 && i == 10) R.print();
-//                            System.out.println(j + "-" + i);
+//                            //if (j==6 && i == 10) R.print();
+//                            //System.out.println(j + "-" + i);
 //                        }
 //                    }
-//                }
+                //}
                 //System.out.println(R.field[27][23]);
-                //ArrayList<Point> p = R.getPathAStar(new Point(R.robotX,R.robotY),new Point(8,10));
+                //ArrayList<Point> p = R.getPathAStar(new Point(R.robotX,R.robotY),new Point(7,7));
                 
                 //System.out.println(p.size());
                 //R.move(p,true);
@@ -1159,7 +1278,7 @@ public class Robot {
                 //System.out.println(R.isSafeCell(3,4));
                 
                 
-            }
+           // }
         }
                                      
          
